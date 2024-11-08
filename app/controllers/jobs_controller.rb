@@ -28,7 +28,9 @@ class JobsController < ApplicationController
     if @job.save
       begin
         # EmailNotificationJob.perform_async("job_posted", @job.recruiter_id, @job.id)
+        Rails.logger.info("job start")
         EmailNotificationJob.perform_later("job_posted", @job.recruiter_id, @job.id)
+        Rails.logger.info("job end")
       rescue StandardError => e
         Rails.logger.error("Failed to send job posted email: #{e.message}")
         flash[:alert] = "Job created, but there was an issue sending the email notification."
