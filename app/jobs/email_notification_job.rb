@@ -5,6 +5,7 @@ class EmailNotificationJob < ApplicationJob
     def perform(action, *args)
       case action
       when "job_posted"
+        Rails.logger.info("inside job post action")
         recruiter = User.find(args[0])
         job = Job.find(args[1])
         NotificationMailer.job_posted_email(recruiter, job).deliver_now
