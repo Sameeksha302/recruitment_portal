@@ -5,29 +5,45 @@ databases:
     plan: free
 
 services:
-  - type: redis
-    name: recruitment_portal_redis
+ - type: redis
+    name: sidekiq-redis
+    region: ohio
+    maxmemoryPolicy: noeviction
     ipAllowList: [] # only allow internal connections
-    plan: free # optional (defaults to starter)
-    maxmemoryPolicy: allkeys-lfu # optional (defaults to allkeys-lru). Rails recommends allkeys-lfu as a default.
-  - type: web
-    name: recruitment_portal
+  - type: job
+    name: sidekiq-job
     runtime: ruby
-    plan: free
-    buildCommand: "./bin/render-build.sh"
-    # preDeployCommand: "bundle exec rails db:migrate" # preDeployCommand only available on paid instance types
-    startCommand: "bundle exec rails server"
+    region: ohio
+    buildCommand: bundle install
+    startCommand: bundle exec sidekiq
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: mysite
           property: connectionString
-      - key: RAILS_MASTER_KEY
-        sync: false
+     
       - key: REDIS_URL # this must match the name of the environment variable used in production.rb
         fromService:
           type: redis
           name: recruitment_portal_redis
           property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
       - key: WEB_CONCURRENCY
         value: 2 # sensible default
+
+- type: web
+    name: recruitment_portal
+    runtime: ruby
+    region: ohio
+    buildCommand: bundle install; bundle exec rake assets:precompile; bundle exec rake assets:clean;
+    startCommand: bundle exec puma -t 5:5 -p ${PORT:-3000} -e ${RACK_ENV:-development}
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: recruitment_portal_redis
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+  
