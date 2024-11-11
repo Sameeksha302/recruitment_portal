@@ -4,10 +4,19 @@ databases:
     plan: free
 
 services:
+  - type: redis
+    name: recruitment_portal_redis
+    ipAllowList: [] # only allow internal connections
+    plan: free # optional (defaults to starter)
+    maxmemoryPolicy: allkeys-lfu # optional (defaults to allkeys-lru). Rails recommends allkeys-lfu as a default.
   - type: web
     name: recruitment_portal
     runtime: ruby
     plan: free
+  - type: worker
+    name: sidekiq-worker
+    env: ruby
+    autoDeploy: false
     buildCommand: "./bin/render-build.sh"
     # preDeployCommand: "bundle exec rails db:migrate" # preDeployCommand only available on paid instance types
     startCommand: "bundle exec rails server"
@@ -16,6 +25,11 @@ services:
         fromDatabase:
           name: recruitment_portal
       - key: RAILS_MASTER_KEY
-        value: 068cfabae22bf2dc93530b23ac93f76f
+        sync: false
+      - key: REDIS_URL # this must match the name of the environment variable used in production.rb
+        fromService:
+          type: redis
+          name: recruitment_portal_redis
+          property: connectionString
       - key: WEB_CONCURRENCY
         value: 2 # sensible default
