@@ -6,7 +6,7 @@ databases:
 
 services:
  - type: redis
-    name: sidekiq-redis
+    name: recruitment_portal_redis
     region: ohio
     maxmemoryPolicy: noeviction
     ipAllowList: [] # only allow internal connections
