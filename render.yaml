@@ -1,12 +1,11 @@
 databases:
-  - name: mysite
-    databaseName: mysite
-    user: mysite
+  - name: recruitment_portal
+    databaseName: recruitment_portal
     plan: free
 
 services:
   - type: web
-    name: mysite
+    name: recruitment_portal
     runtime: ruby
     plan: free
     buildCommand: "./bin/render-build.sh"
@@ -15,9 +14,8 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: mysite
-          property: connectionString
+          name: recruitment_portal
       - key: RAILS_MASTER_KEY
-        sync: false
+        value: 068cfabae22bf2dc93530b23ac93f76f
       - key: WEB_CONCURRENCY
         value: 2 # sensible default
